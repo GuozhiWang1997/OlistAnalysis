@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Data of all customers:</h3>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <table id="table_customer" class="table table-bordered table-striped">
+                        <thead>
+                        <td>#</td>
+                        {% for attr in attributes %}
+                        <td>{{ attr }}</td>
+                        {% endfor %}
+                        </thead>
+                        <tbody>
+                        {% for row in data %}
+                        <tr>
+                            {% for value in row %}
+                            <td>{{ value }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+
+
+            <!-- /.card -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+{% endblock %}

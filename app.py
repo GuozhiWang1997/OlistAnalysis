@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, session, redirect, url_for
 import user_service as us
+import customer_service as cs
 import re
 
 app = Flask(__name__)
@@ -61,9 +62,44 @@ def logout():
         return '1'
 
 
+@app.route('/simple/customer', methods=['GET'])
+def customer():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('customer.html', email=session['email'], username=username, title="Customer", active_parent="SimpleSearch", active_function="customer")
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/simple/order', methods=['GET'])
+def order():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('order.html', email=session['email'], username=username, title="Order", active_parent="SimpleSearch", active_function="order")
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/simple/product', methods=['GET'])
+def product():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('product.html', email=session['email'], username=username, title="Product", active_parent="SimpleSearch", active_function="product")
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/simple/seller', methods=['GET'])
+def seller():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('seller.html', email=session['email'], username=username, title="Seller", active_parent="SimpleSearch", active_function="seller")
+    else:
+        return redirect(url_for('login'))
+
 @app.route('/test')
 def test():
-    data = us.check_if_user_existed('abc', 'def')
+    data = cs.get_schema()
     return str(data)
 
 
