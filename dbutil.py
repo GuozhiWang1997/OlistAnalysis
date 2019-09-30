@@ -11,7 +11,7 @@ class DB:
     def executeSingleResult(self, sql):
         cursor = self.conn.cursor()
         cursor.execute(sql)
-        toReturn = cursor.fetchone()
+        toReturn = cursor.fetchone()[0]
         cursor.close()
         return toReturn
 
