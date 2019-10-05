@@ -5,24 +5,38 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Data of all customers:</h3>
+                    <div class="row">
+                        <h3 class="card-title">Data of all customers:</h3>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label>Show customers from</label>
+                            <input type="text" class="form-control" placeholder="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label>to</label>
+                            <input type="text" class="form-control" placeholder="500">
+                        </div>
+                        <div class="col-md-6">
+                        </div>
+                    </div>
                 </div>
                 <!-- /.card-header -->
                 <div class="card-body">
-                    <table id="table_customer" class="table table-bordered table-striped">
+                    <table id="table_customer" class="table table-bordered table-striped ">
                         <thead>
                         <td>#</td>
                         {% for attr in attributes %}
-                        <td>{{ attr }}</td>
+                            <td>{{ attr[0] }}</td>
                         {% endfor %}
                         </thead>
                         <tbody>
                         {% for row in data %}
-                        <tr>
-                            {% for value in row %}
-                            <td>{{ value }}</td>
-                            {% endfor %}
-                        </tr>
+                            <tr>
+                                {% for value in row %}
+                                    <td>{{ value }}</td>
+                                {% endfor %}
+                            </tr>
                         {% endfor %}
                         </tbody>
                     </table>
@@ -30,11 +44,29 @@
                 <!-- /.card-body -->
             </div>
             <!-- /.card -->
-
-
-            <!-- /.card -->
         </div>
         <!-- /.col -->
     </div>
     <!-- /.row -->
+
+{% endblock %}
+{% block jslibs %}
+    <script src="/static/plugins/datatables/jquery.dataTables.js"></script>
+    <script src="/static/plugins/datatables-bs4/js/dataTables.bootstrap4.js"></script>
+{% endblock %}
+{% block scripts %}
+    $(function () {
+    $('#table_customer').DataTable({
+    "searching": false,
+    "paging": true,
+    "lengthChange": true,
+    "lengthMenu": [10, 50, 100],
+    "ordering": true,
+    "info": true,
+    "autoWidth": true,
+    });
+    });
+{% endblock %}
+{% block csslibs %}
+    <link rel="stylesheet" href="/static/plugins/datatables-bs4/css/dataTables.bootstrap4.css">
 {% endblock %}

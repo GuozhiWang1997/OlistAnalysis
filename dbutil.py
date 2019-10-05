@@ -10,6 +10,7 @@ class DB:
 
     def executeSingleResult(self, sql):
         cursor = self.conn.cursor()
+        print(sql)
         cursor.execute(sql)
         toReturn = cursor.fetchone()[0]
         cursor.close()

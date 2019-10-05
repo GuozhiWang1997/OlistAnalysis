@@ -66,10 +66,22 @@ def logout():
 def customer():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('customer.html', email=session['email'], username=username, title="Customer", active_parent="SimpleSearch", active_function="customer")
+        return render_template('customer.html', email=session['email'], username=username,
+                               title="Customer", active_parent="SimpleSearch", active_function="customer",
+                               attributes=cs.get_schema(), data=cs.get_customers_page())
     else:
         return redirect(url_for('login'))
 
+
+@app.route('/api/customer/view', methods=['GET'])
+def api_customer_view():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('customer.html', email=session['email'], username=username,
+                               title="Customer", active_parent="SimpleSearch", active_function="customer",
+                               attributes=cs.get_schema(), data=cs.get_all_customers())
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/simple/order', methods=['GET'])
 def order():
