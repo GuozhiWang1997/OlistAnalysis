@@ -23,7 +23,7 @@ class DB:
         cursor.close()
         return toReturn
 
-    def executeInsert(self, sql):
+    def executeNoResult(self, sql):
         cursor = self.conn.cursor()
         cursor.execute(sql)
         cursor.close()
