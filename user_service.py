@@ -16,7 +16,7 @@ def register_new_user(username, email, password):
     try:
         db = DB()
         sql = "INSERT INTO USERR VALUES ('%s', '%s', '%s')" % (email, username, password)
-        db.executeInsert(sql)
+        db.executeNoResult(sql)
         db.save()
         db.close()
         return True
