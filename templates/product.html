@@ -2,61 +2,94 @@
 
 {% block content %}
     <div class="row">
-          <div class="col-lg-6">
+        <div class="col-12">
             <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Card title</h5>
+                <div class="card-header">
+                    <div class="row">
+                        <div class="input-group col-md-12">
+                            <div class="input-group-prepend">
+                                <button type="button" class="btn btn-default">Product ID</button>
+                            </div>
+                            <!-- /btn-group -->
+                            <input id="keywordInput" type="text" class="form-control">&nbsp;&nbsp;
+                            <button id="searchBtn" class="btn btn-primary">Search</button>&nbsp;&nbsp;
+                            <button class="btn btn-success" style="right: 0">Add</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <table id="table_customer" class="table table-bordered table-striped ">
+                        <thead>
+                        <td>#</td>
+                        {% for attr in attributes %}
+                            <td>{{ attr[0] }}</td>
+                        {% endfor %}
+                        </thead>
+                        <tbody>
 
-                <p class="card-text">
-                  Some quick example text to build on the card title and make up the bulk of the card's
-                  content.
-                </p>
-
-                <a href="#" class="card-link">Card link</a>
-                <a href="#" class="card-link">Another link</a>
-              </div>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.card-body -->
             </div>
-
-            <div class="card card-primary card-outline">
-              <div class="card-body">
-                <h5 class="card-title">Card title</h5>
-
-                <p class="card-text">
-                  Some quick example text to build on the card title and make up the bulk of the card's
-                  content.
-                </p>
-                <a href="#" class="card-link">Card link</a>
-                <a href="#" class="card-link">Another link</a>
-              </div>
-            </div><!-- /.card -->
-          </div>
-          <!-- /.col-md-6 -->
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-header">
-                <h5 class="m-0">Featured</h5>
-              </div>
-              <div class="card-body">
-                <h6 class="card-title">Special title treatment</h6>
-
-                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
-              </div>
-            </div>
-
-            <div class="card card-primary card-outline">
-              <div class="card-header">
-                <h5 class="m-0">Featured</h5>
-              </div>
-              <div class="card-body">
-                <h6 class="card-title">Special title treatment</h6>
-
-                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-                <a href="#" class="btn btn-primary">Go somewhere</a>
-              </div>
-            </div>
-          </div>
-          <!-- /.col-md-6 -->
+            <!-- /.card -->
         </div>
+        <!-- /.col -->
     </div>
+    <!-- /.row -->
+
+{% endblock %}
+{% block jslibs %}
+    <script src="/static/plugins/datatables/jquery.dataTables.js"></script>
+    <script src="/static/plugins/datatables-bs4/js/dataTables.bootstrap4.js"></script>
+{% endblock %}
+{% block scripts %}
+<script>
+$(function () {
+
+    $('#table_customer').DataTable({
+        "searching": false,
+        "paging": true,
+        "lengthChange": true,
+        "lengthMenu": [10, 50, 100],
+        "ordering": true,
+        "info": true,
+        "autoWidth": true,
+    });
+
+    $('#searchBtn').click(() => {
+        $.ajax({
+            url: '/simple/product/search',
+            method: 'POST',
+            data: {
+                'keyword': $('#keywordInput').val(),
+            },
+            success: (data) => {
+                table = $('#table_customer').DataTable()
+                table.clear()
+                for (i=0; i<data.length; i++) {
+                    table.row.add([
+                        i+1,
+                        data[i].pID,
+                        data[i].category,
+                        data[i].name_length,
+                        data[i].weight,
+                        data[i].length,
+                        data[i].height,
+                        data[i].width
+                    ])
+                }
+                table.draw()
+            }
+        })
+    })
+
+});
+</script>
+
+
+{% endblock %}
+{% block csslibs %}
+    <link rel="stylesheet" href="/static/plugins/datatables-bs4/css/dataTables.bootstrap4.css">
 {% endblock %}

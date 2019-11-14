@@ -2,6 +2,8 @@ from flask import Flask, request, render_template, session, redirect, url_for, j
 import user_service as us
 import customer_service as cs
 import order_service as os
+import product_service as ps
+import seller_service as ss
 import re
 
 app = Flask(__name__)
@@ -132,18 +134,57 @@ def order_search():
 def product():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('product.html', email=session['email'], username=username, title="Product", active_parent="SimpleSearch", active_function="product")
+        return render_template('product.html', email=session['email'], username=username, title="Product", active_parent="SimpleSearch", active_function="product", attributes=ps.get_schema())
     else:
         return redirect(url_for('login'))
+
+
+@app.route('/simple/product/search', methods=['POST'])
+def product_search():
+    if 'email' in session:
+        keyword = request.form['keyword']
+        results = ps.search_product_by_id(keyword)
+        to_return = []
+        for i in range(len(results)):
+            to_return.append({
+                'pID': results[i][0],
+                'category': results[i][1],
+                'name_length': results[i][2],
+                'weight': results[i][3],
+                'length': results[i][4],
+                'height': results[i][5],
+                'width': results[i][6]
+            })
+        print(to_return)
+        return jsonify(to_return)
+    else:
+        return None
 
 
 @app.route('/simple/seller', methods=['GET'])
 def seller():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('seller.html', email=session['email'], username=username, title="Seller", active_parent="SimpleSearch", active_function="seller")
+        return render_template('seller.html', email=session['email'], username=username, title="Seller", active_parent="SimpleSearch", active_function="seller", attributes=ss.get_schema())
     else:
         return redirect(url_for('login'))
+
+
+@app.route('/simple/seller/search', methods=['POST'])
+def seller_search():
+    if 'email' in session:
+        keyword = request.form['keyword']
+        results = ss.search_seller_by_id(keyword)
+        to_return = []
+        for i in range(len(results)):
+            to_return.append({
+                'sID': results[i][0],
+                'zipcode': results[i][1]
+            })
+        print(to_return)
+        return jsonify(to_return)
+    else:
+        return None
 
 
 @app.route('/test')
