@@ -1,19 +1,18 @@
 from flask import Flask, request, render_template, session, redirect, url_for, jsonify
-import user_service as us
-import customer_service as cs
-import order_service as os
-import product_service as ps
-import seller_service as ss
+from service import product_service as ps, seller_service as ss, customer_service as cs, user_service as us, \
+    order_service as os
 import re
 
 app = Flask(__name__)
 app.secret_key = b'I9e0n6_2w2q'
 
+
 @app.route('/', methods=['GET'])
 def index():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('starter.html', email=session['email'], username=username, title="Dashboard", active_parent="Dashboard", active_function="dashboard")
+        return render_template('starter.html', email=session['email'], username=username, title="Dashboard",
+                               active_parent="Dashboard", active_function="dashboard")
     else:
         return redirect(url_for('login'))
 
@@ -69,7 +68,7 @@ def logout():
 def customer(keyword="%"):
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('customer.html', email=session['email'], username=username,
+        return render_template('simple/customer.html', email=session['email'], username=username,
                                title="Customer", active_parent="SimpleSearch", active_function="customer",
                                attributes=cs.get_schema())
     else:
@@ -97,7 +96,8 @@ def customer_search():
 def order():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('order.html', email=session['email'], username=username, title="Order", active_parent="SimpleSearch", active_function="order",attributes=os.get_schema())
+        return render_template('simple/order.html', email=session['email'], username=username, title="Order",
+                               active_parent="SimpleSearch", active_function="order", attributes=os.get_schema())
     else:
         return redirect(url_for('login'))
 
@@ -134,7 +134,8 @@ def order_search():
 def product():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('product.html', email=session['email'], username=username, title="Product", active_parent="SimpleSearch", active_function="product", attributes=ps.get_schema())
+        return render_template('simple/product.html', email=session['email'], username=username, title="Product",
+                               active_parent="SimpleSearch", active_function="product", attributes=ps.get_schema())
     else:
         return redirect(url_for('login'))
 
@@ -165,7 +166,8 @@ def product_search():
 def seller():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('seller.html', email=session['email'], username=username, title="Seller", active_parent="SimpleSearch", active_function="seller", attributes=ss.get_schema())
+        return render_template('simple/seller.html', email=session['email'], username=username, title="Seller",
+                               active_parent="SimpleSearch", active_function="seller", attributes=ss.get_schema())
     else:
         return redirect(url_for('login'))
 
@@ -185,6 +187,66 @@ def seller_search():
         return jsonify(to_return)
     else:
         return None
+
+
+@app.route('/advanced/product')
+def advanced_product():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('advanced/product.html', email=session['email'], username=username, title="SaleProduct",
+                               active_parent="AdvancedAnalysis", active_function="SaleProduct")
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/advanced/location')
+def advanced_location():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('advanced/location.html', email=session['email'], username=username, title="SaleLocation",
+                               active_parent="AdvancedAnalysis", active_function="SaleLocation")
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/advanced/category')
+def advanced_category():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('advanced/category.html', email=session['email'], username=username, title="SaleCategory",
+                               active_parent="AdvancedAnalysis", active_function="SaleCategory")
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/advanced/customer')
+def advanced_customer():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('advanced/customer.html', email=session['email'], username=username, title="UserTrend",
+                               active_parent="AdvancedAnalysis", active_function="UserTrend")
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/advanced/delivery')
+def advanced_delivery():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('advanced/delivery.html', email=session['email'], username=username, title="DeliveryTrend",
+                               active_parent="AdvancedAnalysis", active_function="DeliveryTrend")
+    else:
+        return redirect(url_for('login'))
+
+
+@app.route('/advanced/satisfactory')
+def advanced_satisfactory():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('advanced/satisfactory.html', email=session['email'], username=username, title="SatisfactoryTrend",
+                               active_parent="AdvancedAnalysis", active_function="SatisfactoryTrend")
+    else:
+        return redirect(url_for('login'))
 
 
 @app.route('/test')
