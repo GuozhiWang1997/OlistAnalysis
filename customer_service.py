@@ -1,14 +1,13 @@
 from dbutil import DB
 
 
-def get_customers_page(start=0, end=500):
+def search_customer_by_keyword(keyword):
     db = DB()
-    sql = "SELECT * FROM (" \
-          "     SELECT ROWNUM AS ROWNUMM, t.*  FROM CUSTOMER t" \
-          ") WHERE ROWNUMM < " + str(end) + " AND ROWNUMM >= " + str(start)
+    sql = "SELECT * FROM CUSTOMER WHERE CUSTOMER_ID LIKE '%%%s%%'" % keyword
     results = db.executeMultiResult(sql)
     db.close()
     return results
+
 
 def get_schema():
     db = DB()

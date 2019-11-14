@@ -1,6 +1,7 @@
-from flask import Flask, request, render_template, session, redirect, url_for
+from flask import Flask, request, render_template, session, redirect, url_for, jsonify
 import user_service as us
 import customer_service as cs
+import order_service as os
 import re
 
 app = Flask(__name__)
@@ -63,33 +64,68 @@ def logout():
 
 
 @app.route('/simple/customer', methods=['GET'])
-def customer():
+def customer(keyword="%"):
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
         return render_template('customer.html', email=session['email'], username=username,
                                title="Customer", active_parent="SimpleSearch", active_function="customer",
-                               attributes=cs.get_schema(), data=cs.get_customers_page())
+                               attributes=cs.get_schema())
     else:
         return redirect(url_for('login'))
 
 
-@app.route('/api/customer/view', methods=['GET'])
-def api_customer_view():
+@app.route('/simple/customer/search', methods=['POST'])
+def customer_search():
     if 'email' in session:
-        username = us.get_name_by_email(session['email'])
-        return render_template('customer.html', email=session['email'], username=username,
-                               title="Customer", active_parent="SimpleSearch", active_function="customer",
-                               attributes=cs.get_schema(), data=cs.get_all_customers())
+        keyword = request.form['keyword']
+        results = cs.search_customer_by_keyword(keyword)
+        to_return = []
+        for i in range(len(results)):
+            to_return.append({
+                'cID': results[i][0],
+                'zipcode': results[i][1]
+            })
+        print(to_return)
+        return jsonify(to_return)
     else:
-        return redirect(url_for('login'))
+        return None
+
 
 @app.route('/simple/order', methods=['GET'])
 def order():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('order.html', email=session['email'], username=username, title="Order", active_parent="SimpleSearch", active_function="order")
+        return render_template('order.html', email=session['email'], username=username, title="Order", active_parent="SimpleSearch", active_function="order",attributes=os.get_schema())
     else:
         return redirect(url_for('login'))
+
+
+@app.route('/simple/order/search', methods=['POST'])
+def order_search():
+    if 'email' in session:
+        keyword = request.form['keyword']
+        typee = request.form['type']
+        results = None
+        if typee == 'order':
+            results = os.search_order_by_order_id(keyword)
+        else:
+            results = os.search_order_by_customer_id(keyword)
+        to_return = []
+        for i in range(len(results)):
+            to_return.append({
+                'oID': results[i][0],
+                'cID': results[i][1],
+                'sts': results[i][2],
+                'pTime': results[i][3],
+                'aTime': results[i][4],
+                'dTime': results[i][5],
+                'rTime': results[i][6],
+                'eTime': results[i][7]
+            })
+        print(to_return)
+        return jsonify(to_return)
+    else:
+        return None
 
 
 @app.route('/simple/product', methods=['GET'])
@@ -109,10 +145,11 @@ def seller():
     else:
         return redirect(url_for('login'))
 
+
 @app.route('/test')
 def test():
-    data = cs.get_schema()
-    return str(data)
+    data = cs.search_customer_by_keyword('cd73')
+    return jsonify(data)
 
 
 if __name__ == '__main__':
