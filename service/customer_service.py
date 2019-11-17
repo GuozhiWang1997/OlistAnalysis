@@ -15,3 +15,4 @@ def get_schema():
     result = db.executeMultiResult(sql)
     db.close()
     return result
+

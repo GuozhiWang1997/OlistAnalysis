@@ -2,6 +2,8 @@ from flask import Flask, request, render_template, session, redirect, url_for, j
 from service import product_service as ps, seller_service as ss, customer_service as cs, user_service as us, \
     order_service as os
 import re
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__)
 app.secret_key = b'I9e0n6_2w2q'
@@ -199,6 +201,31 @@ def advanced_product():
         return redirect(url_for('login'))
 
 
+@app.route('/advanced/product/get_data', methods=['POST'])
+def draw_line_product():
+    if 'email' in session:
+        product_id = request.form['product_id']
+        end_date = request.form['end_date']
+        start_date = request.form['start_date']
+        results = ps.draw_line_product(start_date, end_date, product_id)
+        month_slot = get_months(start_date, end_date)
+
+        for r in results:
+            month_slot[r[1]] = r[0]
+
+        to_return = {
+            'time': [],
+            'value': []
+        }
+        for m in month_slot.items():
+            to_return['time'].append(m[0])
+            to_return['value'].append(m[1])
+
+        return jsonify(to_return)
+    else:
+        return None
+
+
 @app.route('/advanced/location')
 def advanced_location():
     if 'email' in session:
@@ -249,11 +276,40 @@ def advanced_satisfactory():
         return redirect(url_for('login'))
 
 
-@app.route('/test')
+@app.route('/test', methods=['GET'])
 def test():
-    data = cs.search_customer_by_keyword('cd73')
-    return jsonify(data)
+    product_id = 'aca2eb7d00ea1a7b8ebd4e68314663af'
+    end_date = '2018-05'
+    start_date = '2017-02'
+    results = ps.draw_line_product(start_date, end_date, product_id)
+
+    month_slot = get_months(start_date, end_date)
+
+    for r in results:
+        month_slot[r[1]] = r[0]
+
+    to_return = {
+        'time': [],
+        'value': []
+    }
+    for m in month_slot.items():
+        to_return['time'].append(m[0])
+        to_return['value'].append(m[1])
+
+    return jsonify(to_return)
 
 
 if __name__ == '__main__':
+
     app.run()
+
+
+def get_months(start, end):
+    start_dt = datetime.strptime(start, '%Y-%m').date()
+    end_dt = datetime.strptime(end, '%Y-%m').date()
+    month_slot = {}
+
+    while start_dt <= end_dt:
+        month_slot[start_dt.strftime('%Y-%m')] = 0
+        start_dt += relativedelta(months=1)
+    return month_slot
