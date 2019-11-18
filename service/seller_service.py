@@ -12,6 +12,6 @@ def search_seller_by_id(keyword):
 def get_schema():
     db = DB()
     sql = "SELECT COLUMN_NAME FROM USER_TAB_COLUMNS WHERE TABLE_NAME='SELLER'"
-    result = db.executeMultiResult(sql)
+    results = db.executeMultiResult(sql)
     db.close()
-    return result
+    return results

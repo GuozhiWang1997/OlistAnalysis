@@ -200,7 +200,7 @@ def advanced_product():
     else:
         return redirect(url_for('login'))
 
-
+#3-1
 @app.route('/advanced/product/get_data', methods=['POST'])
 def draw_line_product():
     if 'email' in session:
@@ -220,6 +220,36 @@ def draw_line_product():
         for m in month_slot.items():
             to_return['time'].append(m[0])
             to_return['value'].append(m[1])
+
+        return jsonify(to_return)
+    else:
+        return None
+
+#3-5
+@app.route('/advanced/delivery/get_data', methods = ['POST'])
+def draw_delivery_histogram():
+    if 'email' in session:
+        state1 = request.form['state1']
+        city1 = request.form['city1']
+        state2 = request.form['state2']
+        city2 = request.form['city2']
+        results = os.draw_delivery_histogram(state1,city1, state2, city2)
+        month_slot = get_months(results[0][2], results[len(results) - 1][2])
+        month_slot1 = get_months(results[0][2], results[len(results) - 1][2])
+
+        to_return = {
+            'time': [],
+            'prep_time': [],
+            'deli_time': []
+        }
+        for r in results:
+            month_slot[r[2]] = r[0]
+            month_slot1[r[2]] = r[1]
+
+        for m in month_slot.items():
+            to_return['time'].append(m[0])
+            to_return['prep_time'].append(m[1])
+            to_return['deli_time'].append(month_slot1[m[0]])
 
         return jsonify(to_return)
     else:
@@ -245,6 +275,43 @@ def advanced_category():
     else:
         return redirect(url_for('login'))
 
+#3-3
+@app.route('/advanced/category/get_data', methods=['POST'])
+def draw_stacked_map():
+    if 'email' in session:
+        category_list = request.form['category_list']
+        start_date = request.form['start_date']
+        end_date = request.form['end_date']
+        list1 = []
+        category_str = ""
+        for i in category_list:
+            list1.append("\'" + i + "\'")
+            category_str = ','.join(list1)
+
+        results = ps.draw_stacked_map(category_str, start_date, end_date)
+        month_slot = get_months(start_date, end_date)
+
+        for category in category_list:
+            month_slot1 = {}
+            for i in results:
+                if i[1] == category:
+                    month_slot1[i[2]] = i[0]
+
+            for i in month_slot.keys():
+                if i not in month_slot1.keys():
+                    month_slot1[i] = 0
+
+            to_return = {
+                'time': [],
+                'cnt': []
+            }
+            for i in month_slot1.items():
+                to_return['time'].append(i[0])
+                to_return['cnt'].append(i[1])
+        return jsonify(to_return)
+    else:
+        return None
+
 
 @app.route('/advanced/customer')
 def advanced_customer():
@@ -254,6 +321,30 @@ def advanced_customer():
                                active_parent="AdvancedAnalysis", active_function="UserTrend")
     else:
         return redirect(url_for('login'))
+
+#3-4
+@app.route('/advanced/customer/get_data', methods = ['POST'])
+def draw_customer_histogram():
+    if 'email' in session:
+        end_date = request.form['end_date']
+        start_date = request.form['start_date']
+        results = cs.draw_customer_histogram(start_date, end_date)
+        month_slot = get_months(start_date, end_date)
+
+        for r in results:
+            month_slot[r[1]] = r[0]
+
+        to_return = {
+            'time': [],
+            'value': []
+        }
+        for m in month_slot.items():
+            to_return['time'].append(m[0])
+            to_return['value'].append(m[1])
+
+        return jsonify(to_return)
+    else:
+        return None
 
 
 @app.route('/advanced/delivery')
@@ -275,28 +366,84 @@ def advanced_satisfactory():
     else:
         return redirect(url_for('login'))
 
+#3-6
+@app.route('/advanced/satisfactory/get_data', methods=['POST'])
+def draw_satisfactory_histogram():
+    if 'email' in session:
+        product_id = request.form['product_id']
+        results = ps.draw_satisfactory_histogram(product_id)
+        print(results)
+        month_slot = get_months(results[0][1], results[len(results) - 1][1])
+        print(month_slot)
+        to_return = {
+            'time': [],
+            'value': [],
+        }
+        for r in results:
+            month_slot[r[1]] = r[0]
+        print(month_slot)
+
+        for m in month_slot.items():
+            to_return['time'].append(m[0])
+            to_return['value'].append(m[1])
+
+        return jsonify(to_return)
+
+    else:
+        return None
+
 
 @app.route('/test', methods=['GET'])
 def test():
-    product_id = 'aca2eb7d00ea1a7b8ebd4e68314663af'
-    end_date = '2018-05'
-    start_date = '2017-02'
-    results = ps.draw_line_product(start_date, end_date, product_id)
-
+    category_list = ["esporte_lazer", "cama_mesa_banho"]
+    list1 = []
+    category_str = ""
+    for i in category_list:
+        list1.append("\'" + i + "\'")
+        category_str = ','.join(list1)
+    end_date = "2018-10"
+    start_date = "2016-10"
+    results = ps.draw_stacked_map(category_str, start_date, end_date)
     month_slot = get_months(start_date, end_date)
+    for category in category_list:
+        month_slot1 = {}
+        for i in results:
+            if i[1] == category:
+                month_slot1[i[2]] = i[0]
 
-    for r in results:
-        month_slot[r[1]] = r[0]
+        for i in month_slot.keys():
+            if i not in month_slot1.keys():
+                month_slot1[i] = 0
 
-    to_return = {
-        'time': [],
-        'value': []
-    }
-    for m in month_slot.items():
-        to_return['time'].append(m[0])
-        to_return['value'].append(m[1])
+        to_return = {
+            'time': [],
+            'cnt': []
+        }
+        for i in month_slot1.items():
+            to_return['time'].append(i[0])
+            to_return['cnt'].append(i[1])
 
-    return jsonify(to_return)
+
+
+    # print(results)
+    # product_id = 'b6f3b8136ba8302906df7e11ff908751'
+    # results = ps.draw_satisfactory_histogram(product_id)
+    # print(results)
+    # month_slot = get_months(results[0][1], results[len(results) - 1][1])
+    # print(month_slot)
+    # to_return = {
+    #     'time': [],
+    #     'value': [],
+    # }
+    # for r in results:
+    #     month_slot[r[1]] = r[0]
+    # print(month_slot)
+    #
+    # for m in month_slot.items():
+    #     to_return['time'].append(m[0])
+    #     to_return['value'].append(m[1])
+    #
+    # return jsonify(to_return)
 
 
 if __name__ == '__main__':
