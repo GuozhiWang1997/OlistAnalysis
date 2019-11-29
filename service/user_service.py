@@ -34,6 +34,7 @@ def check_email_password(email, password):
     else:
         return False
 
+
 def get_name_by_email(email):
     db = DB()
     sql = "SELECT USERNAME FROM USERR WHERE EMAIL='%s'" % (email)

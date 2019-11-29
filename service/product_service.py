@@ -20,20 +20,52 @@ def get_schema():
 def draw_line_product(start_date, end_date, product_id):
     db = DB()
     sql = '''
-        SELECT COUNT(*) AS CNT, TO_CHAR(ORDERR.PURCHASE_TIME, 'YYYY-MM') AS TIME1                                                                                                            
-        FROM ORDERR,                                                                                                                                                                         
-             ORDER_ITEM,                                                                                                                                                                     
-             PRODUCT                                                                                                                                                                         
-        WHERE ORDERR.ORDER_ID = ORDER_ITEM.ORDER_ID                                                                                                                                          
-          AND ORDER_ITEM.PRODUCT_ID = PRODUCT.PRODUCT_ID                                                                                                                                     
-          AND PRODUCT.PRODUCT_ID = '%s'                                                                                                                                                      
-          AND ORDERR.PURCHASE_TIME < TO_DATE('%s', 'YYYY-MM')                                                                                                                                
-          AND ORDERR.PURCHASE_TIME > TO_DATE('%s', 'YYYY-MM')                                                                                                                                
-        GROUP BY TO_CHAR(ORDERR.PURCHASE_TIME, 'YYYY-MM')                                                                                                                                    
-        ORDER BY TO_DATE(TIME1, 'YYYY-MM') ASC ''' % (product_id, end_date, start_date)
+    SELECT COUNT(*) AS cnt, TO_CHAR(ORDERR.PURCHASE_TIME, 'YYYY-MM') AS time1
+    FROM ORDERR,
+         ORDER_ITEM,
+         PRODUCT
+    WHERE ORDERR.ORDER_ID = ORDER_ITEM.ORDER_ID
+      AND ORDER_ITEM.PRODUCT_ID = PRODUCT.PRODUCT_ID
+      AND PRODUCT.PRODUCT_ID = '%s'
+      AND ORDERR.PURCHASE_TIME < TO_DATE('%s', 'YYYY-MM')
+      AND ORDERR.PURCHASE_TIME > TO_DATE('%s', 'YYYY-MM')
+    GROUP BY TO_CHAR(ORDERR.PURCHASE_TIME, 'YYYY-MM')
+    ORDER BY TO_DATE(time1, 'YYYY-MM') ASC''' % (product_id, end_date, start_date)
     print(sql)
     results = db.executeMultiResult(sql)
     db.close()
+    return results
+
+
+def draw_line_all_product():
+    db = DB()
+    sql = '''
+    SELECT *
+    FROM (SELECT COUNT(*) cnt, TO_CHAR(PURCHASE_TIME, 'YYYY-MM') timee
+          FROM ORDERR
+          GROUP BY TO_CHAR(PURCHASE_TIME, 'YYYY-MM'))
+    ORDER BY timee'''
+    print(sql)
+    result = db.executeMultiResult(sql)
+    db.close()
+    return result
+
+
+def search_product_selector_by_id(keyword):
+    db = DB()
+    sql = "SELECT * FROM PRODUCT_SELECTOR WHERE PRODUCT_ID LIKE '%%%s%%'" % keyword
+    results = db.executeMultiResult(sql)
+    db.close()
+    return results
+
+
+def get_selector_schema():
+    db = DB()
+    sql = "SELECT COLUMN_NAME FROM USER_TAB_COLUMNS WHERE TABLE_NAME='PRODUCT_SELECTOR'"
+    result = db.executeMultiResult(sql)
+    db.close()
+    return result
+
     return results
 
 def draw_stacked_map(category_list, start_date, end_date):

@@ -91,10 +91,10 @@
                 'password': password
             },
             success: (data) => {
-                switch (data) {
-                    case '1': alert('Wrong password or email!'); break;
-                    case '0': $(location).attr('href', '/'); break;
-                    default: alert('Unknown error!'); break;
+                    switch (data) {
+                        case '1': alert('Wrong password or email!'); break;
+                        case '0': $(location).attr('href', '/'); break;
+                        default: alert('Unknown error!'); break;
                 }
             }
         })

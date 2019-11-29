@@ -3,19 +3,89 @@
 {% block content %}
     <div class="row">
         <div class="col-12">
-            
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="input-group col-md-12">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">
+                                  Date range picker</i>
+                              </span>
+                            </div>
+                            <input type="text" class="form-control float-right" id="MonthPicker">
+                            &nbsp;&nbsp;
+                            <button id="analysisBtn" class="btn btn-primary">Analysis</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <div id="main" style="width: 100%;height:400px;"></div>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+
+            <!-- /.col -->
         </div>
-        <!-- /.col -->
+        <!-- /.row -->
     </div>
-    <!-- /.row -->
 
 {% endblock %}
 {% block jslibs %}
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.3.0/echarts-en.common.min.js"></script>
+    <script src="/static/plugins/moment/moment.min.js"></script>
+    <script src="/static/plugins/daterangepicker/daterangepicker.js"></script>
 {% endblock %}
 {% block scripts %}
-    
+    <script type="text/javascript">
+        $(() => {
+            $('#MonthPicker').daterangepicker({
+                startDate: moment('2016-08', 'YYYY-MM'),
+                endDate: moment('2018-10', 'YYYY-MM'),
+                locale: {
+                    format: 'MMM/YYYY'
+                }
+            })
+
+            draw()
+
+            $('#analysisBtn').click(() => {
+                draw()
+            })
+        })
+
+        function draw() {
+                var startDate = $('#MonthPicker').data('daterangepicker').startDate;
+                var endDate = $('#MonthPicker').data('daterangepicker').endDate;
+                $.ajax({
+                    url: '/advanced/customer/get_data',
+                    method: 'POST',
+                    data: {
+                        'start_date': startDate.format('YYYY-MM'),
+                        'end_date': endDate.format('YYYY-MM')
+                    },
+                    success: (res) => {
+                        let chart = echarts.init(document.getElementById('main'))
+                        option = {
+                            xAxis: {
+                                type: 'category',
+                                data: res['time']
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [{
+                                data: res['value'],
+                                type: 'bar'
+                            }]
+                        };
+                        chart.setOption(option);
+                    }
+                })
+            }
+    </script>
 {% endblock %}
 {% block csslibs %}
-    
+    <link rel="stylesheet" href="/static/plugins/daterangepicker/daterangepicker.css">
 {% endblock %}

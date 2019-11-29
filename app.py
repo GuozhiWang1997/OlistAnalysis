@@ -195,18 +195,56 @@ def seller_search():
 def advanced_product():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
+        results = ps.draw_line_all_product()
+        start_date = '2016-09'
+        end_date = '2018-10'
+        month_slot = get_months(start_date, end_date)
+
+        for r in results:
+            month_slot[r[1]] = r[0]
+
+        init_time = []
+        init_value = []
+
+        for m in month_slot.items():
+            init_time.append(m[0])
+            init_value.append(m[1])
+
         return render_template('advanced/product.html', email=session['email'], username=username, title="SaleProduct",
-                               active_parent="AdvancedAnalysis", active_function="SaleProduct")
+                               active_parent="AdvancedAnalysis", active_function="SaleProduct",
+                               attributes=ps.get_selector_schema(), init_time=init_time,
+                               init_value=str(init_value))
     else:
         return redirect(url_for('login'))
 
-#3-1
+
+# 3-1
+
+@app.route('/advanced/product/search', methods=['POST'])
+def search_product_selector():
+    if 'email' in session:
+        keyword = request.form['keyword']
+        results = ps.search_product_selector_by_id(keyword)
+        to_return = []
+        for i in range(len(results)):
+            to_return.append({
+                'sales': results[i][0],
+                'pID': results[i][1],
+                'category': results[i][2],
+                'specs': results[i][3]
+            })
+        print(to_return)
+        return jsonify(to_return)
+    else:
+        return None
+
+
 @app.route('/advanced/product/get_data', methods=['POST'])
 def draw_line_product():
     if 'email' in session:
         product_id = request.form['product_id']
-        end_date = request.form['end_date']
         start_date = request.form['start_date']
+        end_date = request.form['end_date']
         results = ps.draw_line_product(start_date, end_date, product_id)
         month_slot = get_months(start_date, end_date)
 
@@ -225,15 +263,16 @@ def draw_line_product():
     else:
         return None
 
-#3-5
-@app.route('/advanced/delivery/get_data', methods = ['POST'])
+
+# 3-5
+@app.route('/advanced/delivery/get_data', methods=['POST'])
 def draw_delivery_histogram():
     if 'email' in session:
         state1 = request.form['state1']
         city1 = request.form['city1']
         state2 = request.form['state2']
         city2 = request.form['city2']
-        results = os.draw_delivery_histogram(state1,city1, state2, city2)
+        results = os.draw_delivery_histogram(state1, city1, state2, city2)
         month_slot = get_months(results[0][2], results[len(results) - 1][2])
         month_slot1 = get_months(results[0][2], results[len(results) - 1][2])
 
@@ -260,7 +299,8 @@ def draw_delivery_histogram():
 def advanced_location():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('advanced/location.html', email=session['email'], username=username, title="SaleLocation",
+        return render_template('advanced/location.html', email=session['email'], username=username,
+                               title="SaleLocation",
                                active_parent="AdvancedAnalysis", active_function="SaleLocation")
     else:
         return redirect(url_for('login'))
@@ -270,12 +310,14 @@ def advanced_location():
 def advanced_category():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('advanced/category.html', email=session['email'], username=username, title="SaleCategory",
+        return render_template('advanced/category.html', email=session['email'], username=username,
+                               title="SaleCategory",
                                active_parent="AdvancedAnalysis", active_function="SaleCategory")
     else:
         return redirect(url_for('login'))
 
-#3-3
+
+# 3-3
 @app.route('/advanced/category/get_data', methods=['POST'])
 def draw_stacked_map():
     if 'email' in session:
@@ -322,8 +364,9 @@ def advanced_customer():
     else:
         return redirect(url_for('login'))
 
-#3-4
-@app.route('/advanced/customer/get_data', methods = ['POST'])
+
+# 3-4
+@app.route('/advanced/customer/get_data', methods=['POST'])
 def draw_customer_histogram():
     if 'email' in session:
         end_date = request.form['end_date']
@@ -351,7 +394,8 @@ def draw_customer_histogram():
 def advanced_delivery():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('advanced/delivery.html', email=session['email'], username=username, title="DeliveryTrend",
+        return render_template('advanced/delivery.html', email=session['email'], username=username,
+                               title="DeliveryTrend",
                                active_parent="AdvancedAnalysis", active_function="DeliveryTrend")
     else:
         return redirect(url_for('login'))
@@ -361,12 +405,15 @@ def advanced_delivery():
 def advanced_satisfactory():
     if 'email' in session:
         username = us.get_name_by_email(session['email'])
-        return render_template('advanced/satisfactory.html', email=session['email'], username=username, title="SatisfactoryTrend",
-                               active_parent="AdvancedAnalysis", active_function="SatisfactoryTrend")
+        return render_template('advanced/satisfactory.html', email=session['email'], username=username,
+                               title="SatisfactoryTrend",
+                               active_parent="AdvancedAnalysis", active_function="SatisfactoryTrend",
+                               attributes=ps.get_selector_schema())
     else:
         return redirect(url_for('login'))
 
-#3-6
+
+# 3-6
 @app.route('/advanced/satisfactory/get_data', methods=['POST'])
 def draw_satisfactory_histogram():
     if 'email' in session:
@@ -422,32 +469,10 @@ def test():
         for i in month_slot1.items():
             to_return['time'].append(i[0])
             to_return['cnt'].append(i[1])
-
-
-
-    # print(results)
-    # product_id = 'b6f3b8136ba8302906df7e11ff908751'
-    # results = ps.draw_satisfactory_histogram(product_id)
-    # print(results)
-    # month_slot = get_months(results[0][1], results[len(results) - 1][1])
-    # print(month_slot)
-    # to_return = {
-    #     'time': [],
-    #     'value': [],
-    # }
-    # for r in results:
-    #     month_slot[r[1]] = r[0]
-    # print(month_slot)
-    #
-    # for m in month_slot.items():
-    #     to_return['time'].append(m[0])
-    #     to_return['value'].append(m[1])
-    #
-    # return jsonify(to_return)
+    return jsonify(to_return)
 
 
 if __name__ == '__main__':
-
     app.run()
 
 

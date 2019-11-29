@@ -3,19 +3,206 @@
 {% block content %}
     <div class="row">
         <div class="col-12">
-            
+            <div class="card">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="input-group col-md-12">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">
+                                  Date range picker</i>
+                              </span>
+                            </div>
+                            <input type="text" class="form-control float-right" id="MonthPicker">
+                            &nbsp;&nbsp;
+                            <div class="input-group-prepend">
+                                <button type="button" class="btn btn-default" data-toggle="modal"
+                                        data-target="#pidModal">Product ID selector
+                                </button>
+                            </div>
+                            <!-- /btn-group -->
+                            <input id="pid" type="text" disabled class="form-control">&nbsp;&nbsp;
+                            <button id="analysisBtn" class="btn btn-primary">Analysis</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <div id="main" style="width: 100%;height:400px;"></div>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+
+            <!-- /.col -->
         </div>
-        <!-- /.col -->
+        <!-- /.row -->
     </div>
-    <!-- /.row -->
+
+    <div class="modal fade" id="pidModal">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Product ID selector</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="input-group col-md-12">
+                                    <div class="input-group-prepend">
+                                        <button type="button" class="btn btn-default">Product ID</button>
+                                    </div>
+                                    <!-- /btn-group -->
+                                    <input id="keywordInput" type="text" class="form-control">&nbsp;&nbsp;
+                                    <button id="searchBtn" class="btn btn-primary">Search</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table id="table_customer" class="table table-bordered table-striped ">
+                                <thead>
+                                {% for attr in attributes %}
+                                    <td>{{ attr[0] }}</td>
+                                {% endfor %}
+                                <td>CHOOSE</td>
+                                </thead>
+                                <tbody>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">OK</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
 
 {% endblock %}
 {% block jslibs %}
-    
+    <script src="/static/plugins/datatables/jquery.dataTables.js"></script>
+    <script src="/static/plugins/datatables-bs4/js/dataTables.bootstrap4.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.3.0/echarts-en.common.min.js"></script>
+    <script src="/static/plugins/moment/moment.min.js"></script>
+    <script src="/static/plugins/daterangepicker/daterangepicker.js"></script>
 {% endblock %}
 {% block scripts %}
-    
+    <script type="text/javascript">
+        $(() => {
+            $('#MonthPicker').daterangepicker({
+                startDate: moment('2016-08', 'YYYY-MM'),
+                endDate: moment('2018-10', 'YYYY-MM'),
+                locale: {
+                    format: 'MMM/YYYY'
+                }
+            })
+
+            $('#table_customer').DataTable({
+                "searching": false,
+                "paging": true,
+                "lengthChange": true,
+                "lengthMenu": [10, 50, 100],
+                "ordering": true,
+                "info": true
+            });
+
+            table = $('#table_customer').DataTable()
+
+            $('#searchBtn').click(() => {
+                $.ajax({
+                    url: '/advanced/product/search',
+                    method: 'POST',
+                    data: {
+                        'keyword': $('#keywordInput').val(),
+                    },
+                    success: (data) => {
+                        table.clear()
+                        for (i = 0; i < data.length; i++) {
+                            table.row.add([
+                                data[i].sales,
+                                data[i].pID,
+                                data[i].category,
+                                data[i].specs,
+                                '<button onclick="choose(\'' + data[i].pID + '\')" class="btn btn-primary">Choose</button>'
+                            ])
+                        }
+                        table.draw()
+                    }
+                })
+            })
+
+            let chart = echarts.init(document.getElementById('main'))
+            option = {
+                xAxis: {
+                    type: 'category',
+                    data: [
+                        {% for t in init_time %}
+                            '{{ t }}',
+                        {% endfor %}
+                    ]
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [{
+                    data: {{init_value}},
+                    type: 'line',
+                    smooth: true
+                }]
+            };
+            chart.setOption(option);
+
+            $('#analysisBtn').click(() => {
+                var startDate = $('#MonthPicker').data('daterangepicker').startDate;
+                var endDate = $('#MonthPicker').data('daterangepicker').endDate;
+                $.ajax({
+                    url: '/advanced/product/get_data',
+                    method: 'POST',
+                    data: {
+                        'product_id': $('#pid').val(),
+                        'start_date': startDate.format('YYYY-MM'),
+                        'end_date': endDate.format('YYYY-MM')
+                    },
+                    success: (res) => {
+                        let chart = echarts.init(document.getElementById('main'))
+                        option = {
+                            xAxis: {
+                                type: 'category',
+                                data: res['time']
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [{
+                                data: res['value'],
+                                type: 'line',
+                                smooth: true
+                            }]
+                        };
+                        chart.setOption(option);
+                    }
+                })
+            })
+        })
+
+        function choose(pID) {
+            $('#pid').val(pID)
+            $('#pidModal').modal('hide')
+        }
+
+    </script>
 {% endblock %}
 {% block csslibs %}
-    
+    <link rel="stylesheet" href="/static/plugins/daterangepicker/daterangepicker.css">
+    <link rel="stylesheet" href="/static/plugins/datatables-bs4/css/dataTables.bootstrap4.css">
 {% endblock %}

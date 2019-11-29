@@ -16,6 +16,7 @@ def get_schema():
     db.close()
     return result
 
+
 def draw_customer_histogram(start_date, end_date):
     db = DB()
     sql = '''
