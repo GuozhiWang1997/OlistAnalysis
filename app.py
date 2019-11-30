@@ -219,7 +219,6 @@ def advanced_product():
 
 
 # 3-1
-
 @app.route('/advanced/product/search', methods=['POST'])
 def search_product_selector():
     if 'email' in session:
@@ -264,37 +263,6 @@ def draw_line_product():
         return None
 
 
-# 3-5
-@app.route('/advanced/delivery/get_data', methods=['POST'])
-def draw_delivery_histogram():
-    if 'email' in session:
-        state1 = request.form['state1']
-        city1 = request.form['city1']
-        state2 = request.form['state2']
-        city2 = request.form['city2']
-        results = os.draw_delivery_histogram(state1, city1, state2, city2)
-        month_slot = get_months(results[0][2], results[len(results) - 1][2])
-        month_slot1 = get_months(results[0][2], results[len(results) - 1][2])
-
-        to_return = {
-            'time': [],
-            'prep_time': [],
-            'deli_time': []
-        }
-        for r in results:
-            month_slot[r[2]] = r[0]
-            month_slot1[r[2]] = r[1]
-
-        for m in month_slot.items():
-            to_return['time'].append(m[0])
-            to_return['prep_time'].append(m[1])
-            to_return['deli_time'].append(month_slot1[m[0]])
-
-        return jsonify(to_return)
-    else:
-        return None
-
-
 @app.route('/advanced/location')
 def advanced_location():
     if 'email' in session:
@@ -305,6 +273,7 @@ def advanced_location():
     else:
         return redirect(url_for('login'))
 
+
 #3-2
 @app.route('/advanced/location/get_data', methods = ['POST'])
 def draw_thermal_location():
@@ -314,14 +283,14 @@ def draw_thermal_location():
         to_return = []
         for r in results:
             position = []
-            position.append(r[0])
             position.append(r[1])
+            position.append(r[0])
             position.append(r[2])
             dict = {
-                'name': '',
-                'value': position
+                "name": "",
+                "value": position
             }
-            dict['name'] = dict['name'] + r[3].replace('\x00', '')
+            dict["name"] = dict["name"] + r[3].replace('\x00', '')
             to_return.append(dict)
         return jsonify(to_return)
     else:
@@ -422,6 +391,51 @@ def advanced_delivery():
         return redirect(url_for('login'))
 
 
+@app.route('/advanced/delivery/get_cities', methods=['POST'])
+def get_cities():
+    if 'email' in session:
+        state = request.form['state']
+        results = os.get_cities_by_state(state)
+
+        to_return = []
+        for r in results:
+            to_return.append(str(r[0]).replace('\u0000', ''))
+
+        return jsonify(to_return)
+    else:
+        return None
+
+# 3-5
+@app.route('/advanced/delivery/get_data', methods=['POST'])
+def draw_delivery_histogram():
+    if 'email' in session:
+        state1 = request.form['state1']
+        city1 = request.form['city1']
+        state2 = request.form['state2']
+        city2 = request.form['city2']
+        results = os.draw_delivery_histogram(state1, city1, state2, city2)
+        month_slot = get_months(results[0][2], results[len(results) - 1][2])
+        month_slot1 = get_months(results[0][2], results[len(results) - 1][2])
+
+        to_return = {
+            'time': [],
+            'prep_time': [],
+            'deli_time': []
+        }
+        for r in results:
+            month_slot[r[2]] = r[0]
+            month_slot1[r[2]] = r[1]
+
+        for m in month_slot.items():
+            to_return['time'].append(m[0])
+            to_return['prep_time'].append(m[1])
+            to_return['deli_time'].append(month_slot1[m[0]])
+
+        return jsonify(to_return)
+    else:
+        return None
+
+
 @app.route('/advanced/satisfactory')
 def advanced_satisfactory():
     if 'email' in session:
@@ -457,26 +471,38 @@ def draw_satisfactory_histogram():
     else:
         return None
 
-#3-7
+
+@app.route('/advanced/benford')
+def advanced_benford():
+    if 'email' in session:
+        username = us.get_name_by_email(session['email'])
+        return render_template('advanced/benford.html', email=session['email'], username=username,
+                               title="Benford's Law Verification",
+                               active_parent="AdvancedAnalysis", active_function="BenfordLaw")
+    else:
+        return redirect(url_for('login'))
+
+
+# 3-7
 @app.route('/advanced/verification/get_data', methods = ['POST'])
 def see_if_fake():
     if 'email' in session:
         request_num =request.form['num']
-        if request_num == 1:
+        if request_num == '1':
             results = ps.see_if_fake_order()
             to_return = {
                 'value': [],
             }
             for r in results:
                 to_return['value'].append(r[1])
-        elif request_num == 2:
+        elif request_num == '2':
             results = ps.see_if_fake_price()
             to_return = {
                 'value': []
             }
             for r in results[1:10:1]:
                 to_return['value'].append(r[1])
-        elif request_num == 3:
+        elif request_num == '3':
             results = ps.see_if_fake_weight()
             to_return = {
                 'value': []
@@ -490,50 +516,14 @@ def see_if_fake():
 
 @app.route('/test', methods=['GET'])
 def test():
-    date = "2017-10-10"
-    results = ps.see_if_fake_weight()
-    to_return = {
-        'value': []
-    }
-    print(results)
-    for r in results[1:10:1]:
-        to_return['value'].append(r[1])
-    print(to_return)
-    # to_return = []
-    # for r in results:
-    #     position = []
-    #     position.append(r[0])
-    #     position.append(r[1])
-    #     position.append(r[2])
-    #     dict = {
-    #         'name': '',
-    #         'value': position
-    #     }
-    #     dict['name'] = dict['name'] + r[3].replace('\x00','')
-    #     to_return.append(dict)
-    # print(to_return)
+    state = 'PA'
+    results = os.get_cities_by_state(state)
 
+    to_return = []
+    for r in results:
+        to_return.append(str(r[0]).replace('\u0000', ''))
 
-
-    # print(results)
-    # product_id = 'b6f3b8136ba8302906df7e11ff908751'
-    # results = ps.draw_satisfactory_histogram(product_id)
-    # print(results)
-    # month_slot = get_months(results[0][1], results[len(results) - 1][1])
-    # print(month_slot)
-    # to_return = {
-    #     'time': [],
-    #     'value': [],
-    # }
-    # for r in results:
-    #     month_slot[r[1]] = r[0]
-    # print(month_slot)
-    #
-    # for m in month_slot.items():
-    #     to_return['time'].append(m[0])
-    #     to_return['value'].append(m[1])
-    #
-    # return jsonify(to_return)
+    return jsonify(to_return)
 
 
 if __name__ == '__main__':

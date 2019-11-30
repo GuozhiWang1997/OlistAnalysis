@@ -25,13 +25,26 @@ def get_schema():
     return results
 
 
+def get_cities_by_state(state):
+    db = DB()
+    sql = '''
+    SELECT DISTINCT (UTL_RAW.CAST_TO_VARCHAR2(NLSSORT(CITY, 'nls_sort=binary_ai'))) city FROM GEOLOC
+    WHERE STATE = '%s'
+    ORDER BY city
+    ''' % (state)
+    results = db.executeMultiResult(sql)
+    db.close()
+
+    return results
+
+
 def draw_delivery_histogram(state1,city1, state2, city2):
     db = DB()
     sql = '''
-        SELECT AVG(ORDERR.DELIVERING_TIME                                                                                                                                                    
-            - ORDERR.PURCHASE_TIME)                        AS PREP_TIME,                                                                                                                     
-               AVG(ORDERR.RECEIVING_TIME                                                                                                                                                     
-                   - ORDERR.DELIVERING_TIME)               AS DELI_TIME,                                                                                                                     
+        SELECT ROUND(AVG(ORDERR.DELIVERING_TIME                                                                                                                                                    
+            - ORDERR.PURCHASE_TIME), 2)                    AS PREP_TIME,                                                                                                                     
+               ROUND(AVG(ORDERR.RECEIVING_TIME                                                                                                                                                     
+                   - ORDERR.DELIVERING_TIME), 2)           AS DELI_TIME,                                                                                                                     
                TO_CHAR(ORDERR.PURCHASE_TIME, 'YYYY-MM') AS TIME1                                                                                                                          
         FROM ORDERR,                                                                                                                                                                         
              CUSTOMER,                                                                                                                                                                       

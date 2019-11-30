@@ -153,7 +153,7 @@
                     },
                     success: (res) => {
                         for (var i = 0; i < res['value'].length; i++) {
-                            res['value'][i] = res['value'][i] * 2 - 5
+                            res['value'][i] = res['value'][i]
                         }
                         let chart = echarts.init(document.getElementById('main'))
                         option = {
@@ -162,9 +162,7 @@
                                 data: res['time']
                             },
                             yAxis: {
-                                type: 'value',
-                                min: -5,
-                                max: 5
+                                type: 'value'
                             },
                             series: [{
                                 data: res['value'],
@@ -172,10 +170,14 @@
                                 itemStyle: {
                                     normal: {
                                         color: function (params) {
-                                            if (params.data >= 0) {
-                                                return '#8BEA00'
+                                            if (params.data >= 4) {
+                                                return '#56EF58'
+                                            } else if (params.data >= 3) {
+                                                return '#C4BF33'
+                                            } else if (params.data >= 2) {
+                                                return '#C46F29'
                                             } else {
-                                                return '#D60062'
+                                                return '#C43C3C'
                                             }
                                         }
                                     }

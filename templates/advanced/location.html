@@ -3,7 +3,21 @@
 {% block content %}
     <div class="row">
         <div class="col-12">
-            
+            <div class="card">
+                <div class="card-header">
+                    <div class="row margin">
+                        <div class="col-sm-12">
+                            <input id="timeSlider" type="text" name="timeSlider" value="">
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <div id="main" style="width: 100%;height:650px;"></div>
+                </div>
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
         </div>
         <!-- /.col -->
     </div>
@@ -11,11 +25,277 @@
 
 {% endblock %}
 {% block jslibs %}
-    
+    <script type="text/javascript"
+            src="https://api.map.baidu.com/api?v=2.0&ak=4TtIgWz2poURNBVxyMCQA4DmoVKfCrQO"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.3.0/echarts.min.js"></script>
+    <script src="/static/dist/js/bmap.js"></script>
+    <script src="/static/plugins/ion-rangeslider/js/ion.rangeSlider.min.js"></script>
 {% endblock %}
 {% block scripts %}
-    
+    <script>
+        function getDates(start, end) {
+            for (var arr = [], dt = start; dt <= end; dt.setDate(dt.getDate() + 1)) {
+                arr.push(new Date(dt))
+            }
+            return arr;
+        }
+
+        function drawIt(end_date) {
+            $.ajax({
+                url: '/advanced/location/get_data',
+                method: 'POST',
+                data: {
+                    'date': end_date
+                },
+                success: (data) => {
+                    draw(data)
+                }
+            })
+        }
+
+        function draw(data) {
+            let chart = echarts.init(document.getElementById('main'));
+            chart.setOption({
+                backgroundColor: 'transparent',
+                title: {
+                    text: 'Sales analyasis for Olist Store',
+                    link: 'https://olist.com',
+                    subtext: 'data from Kaggle | CC BY-NC-SA 4.0',
+                    sublink: 'https://www.kaggle.com/olistbr/brazilian-ecommerce/version/7',
+                    left: 'center',
+                    textStyle: {
+                        color: '#fff'
+                    }
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                bmap: {
+                    center: [-55, -15],
+                    zoom: 5,
+                    roam: true,
+                    mapStyle: {
+                        styleJson: [
+                            {
+                                "featureType": "water",
+                                "elementType": "all",
+                                "stylers": {
+                                    "color": "#044161"
+                                }
+                            },
+                            {
+                                "featureType": "land",
+                                "elementType": "all",
+                                "stylers": {
+                                    "color": "#004981"
+                                }
+                            },
+                            {
+                                "featureType": "boundary",
+                                "elementType": "geometry",
+                                "stylers": {
+                                    "color": "#064f85"
+                                }
+                            },
+                            {
+                                "featureType": "railway",
+                                "elementType": "all",
+                                "stylers": {
+                                    "visibility": "off"
+                                }
+                            },
+                            {
+                                "featureType": "highway",
+                                "elementType": "geometry",
+                                "stylers": {
+                                    "color": "#004981"
+                                }
+                            },
+                            {
+                                "featureType": "highway",
+                                "elementType": "geometry.fill",
+                                "stylers": {
+                                    "color": "#005b96",
+                                    "lightness": 1
+                                }
+                            },
+                            {
+                                "featureType": "highway",
+                                "elementType": "labels",
+                                "stylers": {
+                                    "visibility": "off"
+                                }
+                            },
+                            {
+                                "featureType": "arterial",
+                                "elementType": "geometry",
+                                "stylers": {
+                                    "color": "#004981"
+                                }
+                            },
+                            {
+                                "featureType": "arterial",
+                                "elementType": "geometry.fill",
+                                "stylers": {
+                                    "color": "#00508b"
+                                }
+                            },
+                            {
+                                "featureType": "poi",
+                                "elementType": "all",
+                                "stylers": {
+                                    "visibility": "off"
+                                }
+                            },
+                            {
+                                "featureType": "green",
+                                "elementType": "all",
+                                "stylers": {
+                                    "color": "#056197",
+                                    "visibility": "off"
+                                }
+                            },
+                            {
+                                "featureType": "subway",
+                                "elementType": "all",
+                                "stylers": {
+                                    "visibility": "off"
+                                }
+                            },
+                            {
+                                "featureType": "manmade",
+                                "elementType": "all",
+                                "stylers": {
+                                    "visibility": "off"
+                                }
+                            },
+                            {
+                                "featureType": "local",
+                                "elementType": "all",
+                                "stylers": {
+                                    "visibility": "off"
+                                }
+                            },
+                            {
+                                "featureType": "arterial",
+                                "elementType": "labels",
+                                "stylers": {
+                                    "visibility": "off"
+                                }
+                            },
+                            {
+                                "featureType": "boundary",
+                                "elementType": "geometry.fill",
+                                "stylers": {
+                                    "color": "#029fd4"
+                                }
+                            },
+                            {
+                                "featureType": "building",
+                                "elementType": "all",
+                                "stylers": {
+                                    "color": "#1a5787"
+                                }
+                            },
+                            {
+                                "featureType": "label",
+                                "elementType": "all",
+                                "stylers": {
+                                    "visibility": "off"
+                                }
+                            }
+                        ]
+                    }
+                },
+                series: [
+                    {
+                        name: 'City:',
+                        type: 'scatter',
+                        coordinateSystem: 'bmap',
+                        data: data,
+                        symbolSize: function (val) {
+                            return 3 + Math.log(val[2]);
+                        },
+                        label: {
+                            normal: {
+                                show: false
+                            },
+                            emphasis: {
+                                formatter: '{@[2]}',
+                                position: 'right',
+                                show: true
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#ddb926'
+                            }
+                        }
+                    },
+                    {
+                        name: 'Top 5',
+                        type: 'effectScatter',
+                        coordinateSystem: 'bmap',
+                        data: data.sort(function (a, b) {
+                            return b.value[2] - a.value[2];
+                        }).slice(0, 5),
+                        symbolSize: function (val) {
+                            return 3 + 2 * Math.log(val[2]);
+                        },
+                        showEffectOn: 'emphasis',
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        hoverAnimation: true,
+                        label: {
+                            normal: {
+                                formatter: '{b}',
+                                position: 'right',
+                                show: true
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#f4e925',
+                                shadowBlur: 10,
+                                shadowColor: '#333'
+                            }
+                        },
+                        zlevel: 1
+                    },
+                    {
+                        type: 'custom',
+                        coordinateSystem: 'bmap',
+                        itemStyle: {
+                            normal: {
+                                opacity: 0.5
+                            }
+                        },
+                        animation: false,
+                        silent: true,
+                        data: [0],
+                        z: -10
+                    }
+                ]
+            });
+        }
+
+        $(() => {
+            $('#timeSlider').ionRangeSlider({
+                type: 'single',
+                from: "2016-09-01",
+                values: getDates(new Date("2016-09-01"), new Date("2018-10-31")).map((v) => v.toISOString().slice(0, 10)),
+                prefix: '',
+                prettify: false,
+                hasGrid: true,
+                onFinish: (data) => {
+                    let end_date = data.from_value;
+                    drawIt(end_date);
+                }
+            })
+        })
+    </script>
 {% endblock %}
 {% block csslibs %}
-    
+    <link rel="stylesheet" href="/static/plugins/ion-rangeslider/css/ion.rangeSlider.min.css">
 {% endblock %}

@@ -73,7 +73,7 @@ def draw_stacked_map(category_list, start_date, end_date):
     sql = '''                                                                                                                                                                             
                  SELECT COUNT(DISTINCT ORDERR.ORDER_ID)             SALES,                                                                                                                   
                         PRODUCT.CATEGORY                            CATEGORY,                                                                                                                
-                        TO_CHAR(ORDERR.PURCHASE_TIME, 'YYYY-MM') TIMEE                                                                                                                    
+                        TO_CHAR(ORDERR.PURCHASE_TIME, 'YYYY-MM')    TIMEE                                                                                                                    
                  FROM ORDERR,                                                                                                                                                                
                       ORDER_ITEM,                                                                                                                                                            
                       PRODUCT                                                                                                                                                                                                                                                                                                                             
@@ -83,7 +83,7 @@ def draw_stacked_map(category_list, start_date, end_date):
                    AND ORDERR.PURCHASE_TIME > TO_DATE('%s', 'YYYY-MM')                                                                                                            
                    AND ORDERR.PURCHASE_TIME < TO_DATE('%s', 'YYYY-MM')                                                                                                            
                  GROUP BY PRODUCT.CATEGORY, TO_CHAR(ORDERR.PURCHASE_TIME, 'YYYY-MM')                                                                                                      
-                ORDER BY TO_DATE(TIMEE, 'YYYY-MM')   ''' %(category_list, start_date, end_date)
+                 ORDER BY TO_DATE(TIMEE, 'YYYY-MM')   ''' %(category_list, start_date, end_date)
     print(sql)
     results = db.executeMultiResult(sql)
     db.close()
