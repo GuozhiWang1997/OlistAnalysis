@@ -107,3 +107,58 @@ def draw_satisfactory_histogram(product_id):
     results = db.executeMultiResult(sql)
     db.close()
     return results
+
+def see_if_fake_order():
+    db = DB()
+    sql = '''
+        SELECT digit,
+               ROUND(COUNT(digit) / (
+                   SELECT COUNT(DISTINCT PRODUCT_ID)
+                   FROM ORDER_ITEM
+               ) * 100, 2) cnt
+        FROM (
+                 SELECT PRODUCT_ID, substr(COUNT(PRODUCT_ID), 0, 1) digit
+                 FROM ORDER_ITEM
+                 GROUP BY PRODUCT_ID
+             )
+        GROUP BY digit
+        ORDER BY cnt DESC'''
+    results = db.executeMultiResult(sql)
+    db.close()
+    return results
+
+def see_if_fake_price():
+    db = DB()
+    sql = '''
+        SELECT digit,
+           ROUND(COUNT(digit) / (
+               SELECT COUNT(*)
+               FROM ORDER_ITEM
+           ) * 100, 2) cnt
+        FROM (
+                 SELECT PRODUCT_ID, substr(PRICE, 0, 1) digit
+                 FROM ORDER_ITEM
+             )
+        GROUP BY digit
+        ORDER BY digit ASC'''
+    results = db.executeMultiResult(sql)
+    db.close()
+    return results
+
+def see_if_fake_weight():
+    db = DB()
+    sql = '''
+        SELECT digit,
+           ROUND(COUNT(digit) / (
+               SELECT COUNT(*)
+               FROM PRODUCT
+           ) * 100, 2) cnt
+        FROM (
+                 SELECT PRODUCT_ID, substr(WEIGHT, 0, 1) digit
+                 FROM PRODUCT
+             )
+        GROUP BY digit
+        ORDER BY digit ASC'''
+    results = db.executeMultiResult(sql)
+    db.close()
+    return results

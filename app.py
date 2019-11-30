@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, session, redirect, url_for, jsonify
 from service import product_service as ps, seller_service as ss, customer_service as cs, user_service as us, \
-    order_service as os
+    order_service as os, location_service as ls
 import re
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -305,6 +305,27 @@ def advanced_location():
     else:
         return redirect(url_for('login'))
 
+#3-2
+@app.route('/advanced/location/get_data', methods = ['POST'])
+def draw_thermal_location():
+    if 'email' in session:
+        date = request.form['date']
+        results = ls.draw_thermal_location(date)
+        to_return = []
+        for r in results:
+            position = []
+            position.append(r[0])
+            position.append(r[1])
+            position.append(r[2])
+            dict = {
+                'name': '',
+                'value': position
+            }
+            dict['name'] = dict['name'] + r[3].replace('\x00', '')
+            to_return.append(dict)
+        return jsonify(to_return)
+    else:
+        return None
 
 @app.route('/advanced/category')
 def advanced_category():
@@ -419,16 +440,13 @@ def draw_satisfactory_histogram():
     if 'email' in session:
         product_id = request.form['product_id']
         results = ps.draw_satisfactory_histogram(product_id)
-        print(results)
         month_slot = get_months(results[0][1], results[len(results) - 1][1])
-        print(month_slot)
         to_return = {
             'time': [],
             'value': [],
         }
         for r in results:
             month_slot[r[1]] = r[0]
-        print(month_slot)
 
         for m in month_slot.items():
             to_return['time'].append(m[0])
@@ -439,37 +457,83 @@ def draw_satisfactory_histogram():
     else:
         return None
 
+#3-7
+@app.route('/advanced/verification/get_data', methods = ['POST'])
+def see_if_fake():
+    if 'email' in session:
+        request_num =request.form['num']
+        if request_num == 1:
+            results = ps.see_if_fake_order()
+            to_return = {
+                'value': [],
+            }
+            for r in results:
+                to_return['value'].append(r[1])
+        elif request_num == 2:
+            results = ps.see_if_fake_price()
+            to_return = {
+                'value': []
+            }
+            for r in results[1:10:1]:
+                to_return['value'].append(r[1])
+        elif request_num == 3:
+            results = ps.see_if_fake_weight()
+            to_return = {
+                'value': []
+            }
+            for r in results[1:10:1]:
+                to_return['value'].append(r[1])
+        return jsonify(to_return)
+    else:
+        return None
+
 
 @app.route('/test', methods=['GET'])
 def test():
-    category_list = ["esporte_lazer", "cama_mesa_banho"]
-    list1 = []
-    category_str = ""
-    for i in category_list:
-        list1.append("\'" + i + "\'")
-        category_str = ','.join(list1)
-    end_date = "2018-10"
-    start_date = "2016-10"
-    results = ps.draw_stacked_map(category_str, start_date, end_date)
-    month_slot = get_months(start_date, end_date)
-    for category in category_list:
-        month_slot1 = {}
-        for i in results:
-            if i[1] == category:
-                month_slot1[i[2]] = i[0]
+    date = "2017-10-10"
+    results = ps.see_if_fake_weight()
+    to_return = {
+        'value': []
+    }
+    print(results)
+    for r in results[1:10:1]:
+        to_return['value'].append(r[1])
+    print(to_return)
+    # to_return = []
+    # for r in results:
+    #     position = []
+    #     position.append(r[0])
+    #     position.append(r[1])
+    #     position.append(r[2])
+    #     dict = {
+    #         'name': '',
+    #         'value': position
+    #     }
+    #     dict['name'] = dict['name'] + r[3].replace('\x00','')
+    #     to_return.append(dict)
+    # print(to_return)
 
-        for i in month_slot.keys():
-            if i not in month_slot1.keys():
-                month_slot1[i] = 0
 
-        to_return = {
-            'time': [],
-            'cnt': []
-        }
-        for i in month_slot1.items():
-            to_return['time'].append(i[0])
-            to_return['cnt'].append(i[1])
-    return jsonify(to_return)
+
+    # print(results)
+    # product_id = 'b6f3b8136ba8302906df7e11ff908751'
+    # results = ps.draw_satisfactory_histogram(product_id)
+    # print(results)
+    # month_slot = get_months(results[0][1], results[len(results) - 1][1])
+    # print(month_slot)
+    # to_return = {
+    #     'time': [],
+    #     'value': [],
+    # }
+    # for r in results:
+    #     month_slot[r[1]] = r[0]
+    # print(month_slot)
+    #
+    # for m in month_slot.items():
+    #     to_return['time'].append(m[0])
+    #     to_return['value'].append(m[1])
+    #
+    # return jsonify(to_return)
 
 
 if __name__ == '__main__':
